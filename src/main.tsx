@@ -18,9 +18,14 @@ import router from "@/routes";
 /**
  * Components
  */
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <ThemeProvider defaultTheme="dark" storageKey="bitblog-tuts-ui-theme">
+      <RouterProvider router={router} />
+      <Toaster richColors />
+    </ThemeProvider>
   </StrictMode>
 )
