@@ -26,15 +26,18 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   Field,
+  FieldContent,
   FieldError,
   FieldLabel,
 } from "@/components/ui/field";
 import InputPassword from "@/components/InputPassword";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 /**
  * Assets
  */
-import { loginBanner } from "@/assets";
+import { signupBanner } from "@/assets";
 import { LoaderCircleIcon } from "lucide-react";
 
 /**
@@ -43,22 +46,23 @@ import { LoaderCircleIcon } from "lucide-react";
 import type {
     ActionResponse,
     AuthResponse,
+    ErrorResponse,
     ValidationError
 } from "@/types";
 
-type LoginFieldName = "email" | "password";
+type Signupield = "email" | "password" | "role";
 
 /**
  * Constants
  */
-const LOGIN_FORM = {
-    title: "Welcome back",
-    description: "Login to your BitBlog account",
-    footerText: "Don't have an account?"
+const SIGNUP_FORM = {
+    title: "Create an account",
+    description: "Enter your email below to create an account",
+    footerText: "Already have an account?",
 } as const;
 
 /**
- * Login form schema
+ * Signup form schema
  */
 const formSchema = z.object({
     email: z
@@ -71,6 +75,8 @@ const formSchema = z.object({
         .string()
         .nonempty("Password is required")
         .min(8, "Password must be at least 8 characters long"),
+
+    role: z.enum(["user", "admin"])
 });
 
 const SignupForm = ({
@@ -79,7 +85,7 @@ const SignupForm = ({
 }: React.ComponentProps<"div">) => {
     const navigate = useNavigate();
     const fetcher = useFetcher();
-    const loginResponse = fetcher.data as ActionResponse<AuthResponse>;
+    const signupResponse = fetcher.data as ActionResponse<AuthResponse>;
 
     const isLoading = fetcher.state !== "idle";
 
@@ -88,13 +94,14 @@ const SignupForm = ({
         resolver: zodResolver(formSchema),
         defaultValues: {
             email: "",
-            password: ""
+            password: "",
+            role: "user"
         }
     });
 
     // Handle form submission
     const onSubmit = useCallback(async (values: z.infer<typeof formSchema>) => {
-        console.log("....");
+        console.log(values);
     }, []);
 
     return (
@@ -108,10 +115,56 @@ const SignupForm = ({
                         >
                             <div className="flex flex-col gap-6">
                                 <div className="flex flex-col items-center gap-0.5 text-center">
-                                    <h1 className="text-2xl font-semibold">{LOGIN_FORM.title}</h1>
+                                    <h1 className="text-2xl font-semibold">{SIGNUP_FORM.title}</h1>
 
-                                    <p className="text-muted-foreground text-balance">{LOGIN_FORM.description}</p>
+                                    <p className="text-muted-foreground px-6">{SIGNUP_FORM.description}</p>
                                 </div>
+
+                                <Controller
+                                    control={form.control}
+                                    name="role"
+                                    render={({ field }) => (
+                                        <Field className="grid gap-2">
+                                            <FieldLabel htmlFor="register_as">Register as</FieldLabel>
+
+                                            <FieldContent>
+                                                <RadioGroup
+                                                    onValueChange={field.onChange}
+                                                    defaultValue={field.value}
+                                                    className="grid grid-cols-2 gap-0 border border-input rounded-md p-0.5"
+                                                >
+                                                    <Label 
+                                                        htmlFor="radio-user"
+                                                        className="h-[34px] w-full grid place-items-center rounded-s-sm text-muted-foreground hover:text-foreground has-checked:bg-secondary has-checked:text-secondary-foreground"
+                                                    >
+                                                        <RadioGroupItem 
+                                                            value="user"
+                                                            id="radio-user"
+                                                            className="sr-only"
+                                                            hidden
+                                                        />
+
+                                                        User
+                                                    </Label>
+
+                                                    <Label 
+                                                        htmlFor="radio-admin"
+                                                        className="h-[34px] w-full grid place-items-center rounded-e-sm text-muted-foreground hover:text-foreground has-checked:bg-secondary has-checked:text-secondary-foreground"
+                                                    >
+                                                        <RadioGroupItem 
+                                                            value="admin"
+                                                            id="radio-admin"
+                                                            className="sr-only"
+                                                            hidden
+                                                        />
+
+                                                        Admin
+                                                    </Label>
+                                                </RadioGroup>
+                                            </FieldContent>
+                                        </Field>
+                                    )}
+                                />
 
                                 <Controller
                                     control={form.control}
@@ -156,27 +209,27 @@ const SignupForm = ({
                                 >
                                     {isLoading && <LoaderCircleIcon className="animate-spin" />}
 
-                                    <span>Login</span>
+                                    <span>Signup</span>
                                 </Button>
                             </div>
 
                             <div className="mt-4 text-center text-sm">
-                                {LOGIN_FORM.footerText}
+                                {SIGNUP_FORM.footerText}
 
-                                {' '}
+                                {" "}
 
                                 <Link 
-                                    to="/signup"
+                                    to="/login"
                                     className="underline underline-offset-4 hover:text-primary"
                                     viewTransition
-                                >Sign up</Link>
+                                >Login</Link>
                             </div>
                         </form>
                     </Form>
 
                     <figure className="bg-muted relative hidden md:block">
                         <img
-                            src={loginBanner}
+                            src={signupBanner}
                             alt="Login banner"
                             width={400}
                             height={400}
@@ -186,7 +239,7 @@ const SignupForm = ({
                 </CardContent>
             </Card>
 
-            <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">By clicking continue, you agree to our <a href="#">Terms of Service</a>{' '} and <a href="#">Privacy Policy</a>.</div>
+            <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "} and <a href="#">Privacy Policy</a>.</div>
         </div>
     )
 }
