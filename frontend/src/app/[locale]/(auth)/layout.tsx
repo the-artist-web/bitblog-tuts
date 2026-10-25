@@ -9,7 +9,7 @@ const layout = ({
     return (
         <div className="flex items-center justify-center w-full min-h-dvh py-10 px-4">
             <div className="flex flex-col gap-6 w-full max-w-3xl">
-                <Card className="grid !p-0.5 gap-0 md:grid-cols-2">
+                <Card className="grid p-0 gap-0 md:grid-cols-2">
                     {children}
                 </Card>
 

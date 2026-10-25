@@ -4,9 +4,14 @@
  * Node modules
  */
 import Image from "next/image";
-import { z } from "zod";
+import { email, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
+
+/**
+ * Custom modules
+ */
+import { api } from "@/lib/client";
 
 /**
  * Components
@@ -21,6 +26,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import InputPassword from "@/components/InputPassword";
 
 /**
@@ -54,14 +61,7 @@ const signupSchema = z.object({
         .min(8, "Password must be at least 8 characters long")
         .max(30, "Password must not exceed 30 characters"),
 
-    password_confirmation: z
-        .string()
-        .nonempty("Confirm password is required")
-        .min(8, "Confirm password must be at least 8 characters long")
-        .max(30, "Confirm password must not exceed 30 characters")
-}).refine((data) => data.password === data.password_confirmation, {
-    message: "Passwords do not match",
-    path: ["password_confirmation"]
+    role: z.enum(["user", "admin"])
 });
 
 const SignupForm = () => {
@@ -70,14 +70,21 @@ const SignupForm = () => {
         defaultValues: {
             email: "",
             password: "",
-            password_confirmation: ""
+            role: "user"
         }
     });
 
     const { isSubmitting } = form.formState;
+    const allValues = form.getValues();
 
     const onSubmit = async () => {
-        // ...
+        const res = await api.post("/auth/register", {
+            role: allValues.role,
+            email: allValues.email,
+            password: allValues.password,
+        });
+
+        console.log(res);
     }
 
     return (
@@ -91,6 +98,53 @@ const SignupForm = () => {
 
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                     <FieldGroup className="gap-5">
+                        
+                        <Controller
+                            control={form.control}
+                            name="role"
+                            render={({ field }) => (
+                                <Field>
+                                    <FieldLabel>Register as</FieldLabel>
+
+                                    <RadioGroup
+                                        defaultValue={field.value}
+                                        onValueChange={field.onChange}
+                                        className="grid grid-cols-2 gap-0.5 p-0.5 rounded-lg border border-border"
+                                    >
+                                        <Label 
+                                            htmlFor="role_user"
+                                            className="px-4 min-h-extra-small max-h-extra-small grid place-items-center cursor-pointer rounded-md text-muted-foreground hover:text-foreground has-checked:bg-foreground has-checked:text-background transition-all duration-150 [--state-layer-bg:var(--foreground)]"
+                                        >
+                                            <RadioGroupItem
+                                                value="user"
+                                                id="role_user"
+                                                hidden
+                                            />
+                                            
+                                            User
+
+                                            <div className="state-layer" />
+                                        </Label>
+
+                                        <Label 
+                                            htmlFor="role_admin"
+                                            className="px-4 min-h-extra-small max-h-extra-small grid place-items-center cursor-pointer rounded-md text-muted-foreground hover:text-foreground has-checked:bg-foreground has-checked:text-background transition-all duration-150 [--state-layer-bg:var(--foreground)]"
+                                        >
+                                            <RadioGroupItem
+                                                value="admin"
+                                                id="role_admin"
+                                                hidden
+                                            />
+
+                                            Admin
+
+                                            <div className="state-layer" />
+                                        </Label>
+                                    </RadioGroup>
+                                </Field>
+                            )}
+                        />
+                        
                         <Controller
                             control={form.control}
                             name="email"
@@ -121,26 +175,6 @@ const SignupForm = () => {
                                     <InputPassword
                                         placeholder="Enter your password"
                                         id="password"
-                                        aria-invalid={fieldState.invalid}
-                                        autoComplete="off"
-                                        {...field}
-                                    />
-
-                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                                </Field>
-                            )}
-                        />
-                        
-                        <Controller
-                            control={form.control}
-                            name="password_confirmation"
-                            render={({ field, fieldState }) => (
-                                <Field aria-invalid={fieldState.invalid}>
-                                    <FieldLabel htmlFor="password_confirmation">Confirm Password</FieldLabel>
-
-                                    <InputPassword
-                                        placeholder="Enter your confirm password"
-                                        id="password_confirmation"
                                         aria-invalid={fieldState.invalid}
                                         autoComplete="off"
                                         {...field}

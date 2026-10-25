@@ -26,7 +26,7 @@ import InputPassword from "@/components/InputPassword";
 /**
  * Assets
  */
-import { signupBanner } from "@/assets/images";
+import { loginBanner } from "@/assets/images";
 import Link from "next/link";
 
 /**
@@ -143,7 +143,7 @@ const LoginForm = () => {
             </FieldSet>
 
             <Image
-                src={signupBanner.src}
+                src={loginBanner.src}
                 alt="Sign up banner"
                 width={400}
                 height={400}
