@@ -15,6 +15,11 @@ import NextTopLoader from "nextjs-toploader";
 import { routing } from "@/i18n/routing";
 
 /**
+ * Components
+ */
+import { TooltipProvider } from "@/components/ui/tooltip";
+
+/**
  * Assets
  */
 import { favicon } from "@/assets/images";
@@ -121,7 +126,11 @@ export default async function LocaleLayout({
             color="var(--primary)"
             showSpinner={false}
           />
-          <ViewTransition>{children}</ViewTransition>
+          <ViewTransition>
+            <TooltipProvider>
+              {children}
+            </TooltipProvider>
+          </ViewTransition>
         </NextIntlClientProvider>
       </body>
     </html>
