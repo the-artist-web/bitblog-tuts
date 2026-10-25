@@ -18,6 +18,7 @@ import { routing } from "@/i18n/routing";
  * Components
  */
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 
 /**
  * Assets
@@ -129,6 +130,7 @@ export default async function LocaleLayout({
           <ViewTransition>
             <TooltipProvider>
               {children}
+              <Toaster />
             </TooltipProvider>
           </ViewTransition>
         </NextIntlClientProvider>

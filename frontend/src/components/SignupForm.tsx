@@ -3,14 +3,17 @@
 /**
  * Node modules
  */
-import Image from "next/image";
-import { email, z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { z } from "zod";
+import Image from "next/image";
+import Link from "next/link";
 
 /**
  * Custom modules
  */
+import { useRouter } from "@/i18n/navigation";
 import { api } from "@/lib/client";
 
 /**
@@ -34,7 +37,6 @@ import InputPassword from "@/components/InputPassword";
  * Assets
  */
 import { signupBanner } from "@/assets/images";
-import Link from "next/link";
 
 /**
  * Constants
@@ -65,6 +67,7 @@ const signupSchema = z.object({
 });
 
 const SignupForm = () => {
+    const router = useRouter();
     const form = useForm<z.infer<typeof signupSchema>>({
         resolver: zodResolver(signupSchema),
         defaultValues: {
@@ -78,13 +81,25 @@ const SignupForm = () => {
     const allValues = form.getValues();
 
     const onSubmit = async () => {
-        const res = await api.post("/auth/register", {
-            role: allValues.role,
-            email: allValues.email,
-            password: allValues.password,
-        });
+        try {
+            const { accessToken } = await api.post("/auth/register", {
+                role: allValues.role,
+                email: allValues.email,
+                password: allValues.password,
+            });
+            
+            api.setToken(accessToken);
 
-        console.log(res);
+            toast.success("User registered successfully");
+
+            router.replace("/");
+        } catch (err) {
+            if (err instanceof Error && "code" in err && "errors" in err) {
+                toast.error(err.message);
+
+                console.log(err.errors)
+            }
+        }
     }
 
     return (
