@@ -6,59 +6,50 @@
 import { useState } from "react";
 
 /**
+ * Custom modules
+ */
+import { cn } from "cn";
+
+/**
  * Components
  */
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger
-} from "@/components/ui/tooltip";
-import {
-    InputGroup,
-    InputGroupInput
-} from "@/components/ui/input-group";
-import { IconBtn } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
+import { Toggle } from "@/components/ui/toggle";
 
 /**
  * Assets
  */
-import {
-    EyeIcon,
-    EyeClosedIcon
-} from "lucide-react";
+import { EyeClosedIcon, EyeIcon } from "lucide-react";
 
-const InputPassword = ({
+/**
+ * Types
+ */
+type InputPasswordProps = Omit<React.ComponentProps<"input">, "type">;
+
+const InputPassword: React.FC<InputPasswordProps> = ({
+    className,
     ...props
-}: React.ComponentProps<"input">) => {
-    const [togglePassword, setTogglePassword] = useState(false);
+}) => {
+    const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <InputGroup>
-            <InputGroupInput
-                type={togglePassword ? "text" : "password"}
+        <div className="relative">
+            <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter "
+                className={cn("pe-12 placeholder:tracking-normal", !showPassword && "tracking-widset", className)}
                 {...props}
             />
 
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <IconBtn
-                        type="button"
-                        variant="text"
-                        size="xs"
-                        onClick={() => setTogglePassword(togglePassword ? false : true)}
-                    >
-                        {!togglePassword ? <EyeIcon /> : <EyeClosedIcon />}
-
-                        <div className="state-layer" />
-                    </IconBtn>
-                </TooltipTrigger>
-
-                <TooltipContent
-                    side="bottom"
-                    align="center"
-                >{togglePassword ? "Hide Password" : "Show Password"}</TooltipContent>
-            </Tooltip>
-        </InputGroup>
+            <Toggle
+                type="button"
+                pressed={showPassword}
+                onPressedChange={setShowPassword}
+                className="absolute top-1/2 -translate-y-1/2 right-0.5 rtl:right-auto rtl:left-0.5 size-7.5"
+            >
+                {showPassword ? <EyeClosedIcon /> : <EyeIcon />}
+            </Toggle>
+        </div>
     )
 }
 

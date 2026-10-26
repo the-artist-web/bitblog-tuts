@@ -3,73 +3,95 @@
 /**
  * Node modules
  */
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
+import { Link, useFetcher, useNavigate } from "react-router";
 import { z } from "zod";
-import Image from "next/image";
-import Link from "next/link";
+import { Controller, Form, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useCallback, useEffect } from "react";
+import { toast } from "sonner";
 
 /**
  * Custom modules
  */
-import { useRouter } from "@/i18n/navigation";
-import { api } from "@/lib/client";
+import { cn } from "@/lib/utils";
 
 /**
  * Components
  */
-import {
-    Field,
-    FieldError,
-    FieldGroup,
-    FieldLabel,
-    FieldSet
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+    Card,
+    CardContent
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Field,
+  FieldContent,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field";
 import InputPassword from "@/components/InputPassword";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 /**
  * Assets
  */
-import { signupBanner } from "@/assets/images";
+import { signupBanner } from "@/assets";
+import { LoaderCircleIcon } from "lucide-react";
+
+/**
+ * Types
+ */
+import type {
+    ActionResponse,
+    AuthResponse,
+    ErrorResponse,
+    ValidationError
+} from "@/types";
+
+type Signupield = "email" | "password" | "role";
 
 /**
  * Constants
  */
 const SIGNUP_FORM = {
     title: "Create an account",
-    descroption: "Enter your email below to create an account",
-    footerText: "Already have an account?"
-}
+    description: "Enter your email below to create an account",
+    footerText: "Already have an account?",
+} as const;
 
 /**
- * Schema signup form
+ * Signup form schema
  */
-const signupSchema = z.object({
+const formSchema = z.object({
     email: z
         .string()
         .nonempty("Email is required")
-        .email("Please enter a valid email address")
-        .max(50, "Email must not exceed 50 characters"),
+        .max(50, "Email must be less than 50 characters")
+        .email("Invalid email address"),
 
     password: z
         .string()
         .nonempty("Password is required")
-        .min(8, "Password must be at least 8 characters long")
-        .max(30, "Password must not exceed 30 characters"),
+        .min(8, "Password must be at least 8 characters long"),
 
     role: z.enum(["user", "admin"])
 });
 
-const SignupForm = () => {
-    const router = useRouter();
-    const form = useForm<z.infer<typeof signupSchema>>({
-        resolver: zodResolver(signupSchema),
+const SignupForm = ({
+    className,
+    ...props
+}: React.ComponentProps<"div">) => {
+    const navigate = useNavigate();
+    const fetcher = useFetcher();
+    const signupResponse = fetcher.data as ActionResponse<AuthResponse>;
+
+    const isLoading = fetcher.state !== "idle";
+
+    // React hook form initial
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
         defaultValues: {
             email: "",
             password: "",
@@ -77,158 +99,148 @@ const SignupForm = () => {
         }
     });
 
-    const { isSubmitting } = form.formState;
-    const allValues = form.getValues();
-
-    const onSubmit = async () => {
-        try {
-            const { accessToken } = await api.post("/auth/register", {
-                role: allValues.role,
-                email: allValues.email,
-                password: allValues.password,
-            });
-            
-            api.setToken(accessToken);
-
-            toast.success("User registered successfully");
-
-            router.replace("/");
-        } catch (err) {
-            if (err instanceof Error && "code" in err && "errors" in err) {
-                toast.error(err.message);
-
-                console.log(err.errors)
-            }
-        }
-    }
+    // Handle form submission
+    const onSubmit = useCallback(async (values: z.infer<typeof formSchema>) => {
+        console.log(values);
+    }, []);
 
     return (
-        <>
-            <FieldSet className="gap-7 p-6 md:p-8">
-                <div className="flex flex-col gap-1 text-center">
-                    <h1 className="text-2xl font-bold">{SIGNUP_FORM.title}</h1>
+        <div className={cn("flex flex-col gap-6", className)} {...props}>
+            <Card className="overflow-hidden p-0">
+                <CardContent className="grid p-0 md:grid-cols-2">
+                    <Form {...form}>
+                        <form 
+                            className="p-6 md:p-8"
+                            onSubmit={form.handleSubmit(onSubmit)}
+                        >
+                            <div className="flex flex-col gap-6">
+                                <div className="flex flex-col items-center gap-0.5 text-center">
+                                    <h1 className="text-2xl font-semibold">{SIGNUP_FORM.title}</h1>
 
-                    <p className="text-sm font-medium text-muted-foreground">{SIGNUP_FORM.descroption}</p>
-                </div>
+                                    <p className="text-muted-foreground px-6">{SIGNUP_FORM.description}</p>
+                                </div>
 
-                <form onSubmit={form.handleSubmit(onSubmit)}>
-                    <FieldGroup className="gap-5">
-                        
-                        <Controller
-                            control={form.control}
-                            name="role"
-                            render={({ field }) => (
-                                <Field>
-                                    <FieldLabel>Register as</FieldLabel>
+                                <Controller
+                                    control={form.control}
+                                    name="role"
+                                    render={({ field }) => (
+                                        <Field className="grid gap-2">
+                                            <FieldLabel htmlFor="register_as">Register as</FieldLabel>
 
-                                    <RadioGroup
-                                        defaultValue={field.value}
-                                        onValueChange={field.onChange}
-                                        className="grid grid-cols-2 gap-0.5 p-0.5 rounded-lg border border-border"
-                                    >
-                                        <Label 
-                                            htmlFor="role_user"
-                                            className="px-4 min-h-extra-small max-h-extra-small grid place-items-center cursor-pointer rounded-md text-muted-foreground hover:text-foreground has-checked:bg-foreground has-checked:text-background transition-all duration-150 [--state-layer-bg:var(--foreground)]"
-                                        >
-                                            <RadioGroupItem
-                                                value="user"
-                                                id="role_user"
-                                                hidden
+                                            <FieldContent>
+                                                <RadioGroup
+                                                    onValueChange={field.onChange}
+                                                    defaultValue={field.value}
+                                                    className="grid grid-cols-2 gap-0 border border-input rounded-md p-0.5"
+                                                >
+                                                    <Label 
+                                                        htmlFor="radio-user"
+                                                        className="h-[34px] w-full grid place-items-center rounded-s-sm text-muted-foreground hover:text-foreground has-checked:bg-secondary has-checked:text-secondary-foreground"
+                                                    >
+                                                        <RadioGroupItem 
+                                                            value="user"
+                                                            id="radio-user"
+                                                            className="sr-only"
+                                                            hidden
+                                                        />
+
+                                                        User
+                                                    </Label>
+
+                                                    <Label 
+                                                        htmlFor="radio-admin"
+                                                        className="h-[34px] w-full grid place-items-center rounded-e-sm text-muted-foreground hover:text-foreground has-checked:bg-secondary has-checked:text-secondary-foreground"
+                                                    >
+                                                        <RadioGroupItem 
+                                                            value="admin"
+                                                            id="radio-admin"
+                                                            className="sr-only"
+                                                            hidden
+                                                        />
+
+                                                        Admin
+                                                    </Label>
+                                                </RadioGroup>
+                                            </FieldContent>
+                                        </Field>
+                                    )}
+                                />
+
+                                <Controller
+                                    control={form.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <Field className="grid gap-2">
+                                            <FieldLabel htmlFor="email">Email address</FieldLabel>
+
+                                            <Input
+                                                placeholder="john@example.com"
+                                                id="email"
+                                                {...field}
+                                            />
+
+                                            <FieldError></FieldError>
+                                        </Field>
+                                    )}
+                                />
+
+                                <Controller
+                                    control={form.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <Field className="grid gap-2">
+                                            <FieldLabel htmlFor="password">Password</FieldLabel>
+
+                                            <InputPassword
+                                                placeholder="Enter your password"
+                                                id="password"
+                                                {...field}
                                             />
                                             
-                                            User
+                                            <FieldError></FieldError>
+                                        </Field>
+                                    )}
+                                />
 
-                                            <div className="state-layer" />
-                                        </Label>
+                                <Button
+                                    type="submit"
+                                    className="w-full"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading && <LoaderCircleIcon className="animate-spin" />}
 
-                                        <Label 
-                                            htmlFor="role_admin"
-                                            className="px-4 min-h-extra-small max-h-extra-small grid place-items-center cursor-pointer rounded-md text-muted-foreground hover:text-foreground has-checked:bg-foreground has-checked:text-background transition-all duration-150 [--state-layer-bg:var(--foreground)]"
-                                        >
-                                            <RadioGroupItem
-                                                value="admin"
-                                                id="role_admin"
-                                                hidden
-                                            />
+                                    <span>Signup</span>
+                                </Button>
+                            </div>
 
-                                            Admin
+                            <div className="mt-4 text-center text-sm">
+                                {SIGNUP_FORM.footerText}
 
-                                            <div className="state-layer" />
-                                        </Label>
-                                    </RadioGroup>
-                                </Field>
-                            )}
+                                {" "}
+
+                                <Link 
+                                    to="/login"
+                                    className="underline underline-offset-4 hover:text-primary"
+                                    viewTransition
+                                >Login</Link>
+                            </div>
+                        </form>
+                    </Form>
+
+                    <figure className="bg-muted relative hidden md:block">
+                        <img
+                            src={signupBanner}
+                            alt="Login banner"
+                            width={400}
+                            height={400}
+                            className="w-full h-full object-cover absolute inset-0"
                         />
-                        
-                        <Controller
-                            control={form.control}
-                            name="email"
-                            render={({ field, fieldState }) => (
-                                <Field aria-invalid={fieldState.invalid}>
-                                    <FieldLabel htmlFor="email_address">Email address</FieldLabel>
+                    </figure>
+                </CardContent>
+            </Card>
 
-                                    <Input
-                                        placeholder="John@example.com"
-                                        id="email_address"
-                                        aria-invalid={fieldState.invalid}
-                                        autoComplete="off"
-                                        {...field}
-                                    />
-
-                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                                </Field>
-                            )}
-                        />
-                        
-                        <Controller
-                            control={form.control}
-                            name="password"
-                            render={({ field, fieldState }) => (
-                                <Field aria-invalid={fieldState.invalid}>
-                                    <FieldLabel htmlFor="password">Password</FieldLabel>
-
-                                    <InputPassword
-                                        placeholder="Enter your password"
-                                        id="password"
-                                        aria-invalid={fieldState.invalid}
-                                        autoComplete="off"
-                                        {...field}
-                                    />
-
-                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                                </Field>
-                            )}
-                        />
-
-                        <Button
-                            type="submit"
-                            size="xs"
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting && <Spinner />}
-
-                            <p className="text-sm font-medium">Sign up</p>
-
-                            <div className="state-layer" />
-                        </Button>
-
-                        <p className="text-sm font-medium text-center">
-                            {SIGNUP_FORM.footerText}{" "}
-
-                            <Link href="/login" className="underline underline-offset-4 hover:text-primary active:opacity-75 transition-opacity duration-150">Login</Link>
-                        </p>
-                    </FieldGroup>
-                </form>
-            </FieldSet>
-
-            <Image
-                src={signupBanner.src}
-                alt="Sign up banner"
-                width={400}
-                height={400}
-                className="w-full h-full object-cover hidden rounded-xl md:block"
-            />
-        </>
+            <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "} and <a href="#">Privacy Policy</a>.</div>
+        </div>
     )
 }
 

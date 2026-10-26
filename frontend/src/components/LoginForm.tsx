@@ -3,153 +3,190 @@
 /**
  * Node modules
  */
-import Image from "next/image";
+import { Link, useFetcher, useNavigate } from "react-router";
 import { z } from "zod";
+import { Controller, Form, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, Controller } from "react-hook-form";
+import { useCallback, useEffect } from "react";
+
+/**
+ * Custom modules
+ */
+import { cn } from "@/lib/utils";
 
 /**
  * Components
  */
-import {
-    Field,
-    FieldError,
-    FieldGroup,
-    FieldLabel,
-    FieldSet
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import {
+    Card,
+    CardContent
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Field,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field";
 import InputPassword from "@/components/InputPassword";
 
 /**
  * Assets
  */
-import { loginBanner } from "@/assets/images";
-import Link from "next/link";
+import { loginBanner } from "@/assets";
+import { LoaderCircleIcon } from "lucide-react";
+
+/**
+ * Types
+ */
+import type {
+    ActionResponse,
+    AuthResponse,
+    ValidationError
+} from "@/types";
+
+type LoginFieldName = "email" | "password";
 
 /**
  * Constants
  */
 const LOGIN_FORM = {
     title: "Welcome back",
-    descroption: "Login to your BitBlog account",
+    description: "Login to your BitBlog account",
     footerText: "Don't have an account?"
-}
+} as const;
 
 /**
- * Schema signup form
+ * Login form schema
  */
-const signupSchema = z.object({
+const formSchema = z.object({
     email: z
         .string()
         .nonempty("Email is required")
-        .email("Please enter a valid email address")
-        .max(50, "Email must not exceed 50 characters"),
+        .max(50, "Email must be less than 50 characters")
+        .email("Invalid email address"),
 
     password: z
         .string()
         .nonempty("Password is required")
-        .min(8, "Password must be at least 8 characters long")
-        .max(30, "Password must not exceed 30 characters")
+        .min(8, "Password must be at least 8 characters long"),
 });
 
-const LoginForm = () => {
-    const form = useForm<z.infer<typeof signupSchema>>({
-        resolver: zodResolver(signupSchema),
+const LoginForm = ({
+    className,
+    ...props
+}: React.ComponentProps<"div">) => {
+    const navigate = useNavigate();
+    const fetcher = useFetcher();
+    const loginResponse = fetcher.data as ActionResponse<AuthResponse>;
+
+    const isLoading = fetcher.state !== "idle";
+
+    // React hook form initial
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
         defaultValues: {
             email: "",
             password: ""
         }
     });
 
-    const { isSubmitting } = form.formState;
-
-    const onSubmit = async () => {
-        // ...
-    }
+    // Handle form submission
+    const onSubmit = useCallback(async (values: z.infer<typeof formSchema>) => {
+        console.log("....");
+    }, []);
 
     return (
-        <>
-            <FieldSet className="gap-8 p-6 md:p-8">
-                <div className="flex flex-col gap-1 text-center">
-                    <h1 className="text-2xl font-bold">{LOGIN_FORM.title}</h1>
-
-                    <p className="text-sm font-medium text-muted-foreground">{LOGIN_FORM.descroption}</p>
-                </div>
-
-                <form onSubmit={form.handleSubmit(onSubmit)}>
-                    <FieldGroup className="gap-5">
-                        <Controller
-                            control={form.control}
-                            name="email"
-                            render={({ field, fieldState }) => (
-                                <Field aria-invalid={fieldState.invalid}>
-                                    <FieldLabel htmlFor="email_address">Email address</FieldLabel>
-
-                                    <Input
-                                        placeholder="John@example.com"
-                                        id="email_address"
-                                        aria-invalid={fieldState.invalid}
-                                        autoComplete="off"
-                                        {...field}
-                                    />
-
-                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                                </Field>
-                            )}
-                        />
-                        
-                        <Controller
-                            control={form.control}
-                            name="password"
-                            render={({ field, fieldState }) => (
-                                <Field aria-invalid={fieldState.invalid}>
-                                    <FieldLabel htmlFor="password">Password</FieldLabel>
-
-                                    <InputPassword
-                                        placeholder="Enter your password"
-                                        id="password"
-                                        aria-invalid={fieldState.invalid}
-                                        autoComplete="off"
-                                        {...field}
-                                    />
-
-                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                                </Field>
-                            )}
-                        />
-
-                        <Button
-                            type="submit"
-                            size="xs"
-                            disabled={isSubmitting}
+        <div className={cn("flex flex-col gap-6", className)} {...props}>
+            <Card className="overflow-hidden p-0">
+                <CardContent className="grid p-0 md:grid-cols-2">
+                    <Form {...form}>
+                        <form 
+                            className="p-6 md:p-8"
+                            onSubmit={form.handleSubmit(onSubmit)}
                         >
-                            {isSubmitting && <Spinner />}
+                            <div className="flex flex-col gap-6">
+                                <div className="flex flex-col items-center gap-0.5 text-center">
+                                    <h1 className="text-2xl font-semibold">{LOGIN_FORM.title}</h1>
 
-                            <p className="text-sm font-medium">Login</p>
+                                    <p className="text-muted-foreground text-balance">{LOGIN_FORM.description}</p>
+                                </div>
 
-                            <div className="state-layer" />
-                        </Button>
+                                <Controller
+                                    control={form.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <Field className="grid gap-2">
+                                            <FieldLabel htmlFor="email">Email address</FieldLabel>
 
-                        <p className="text-sm font-medium text-center">
-                            {LOGIN_FORM.footerText}{" "}
+                                            <Input
+                                                placeholder="john@example.com"
+                                                id="email"
+                                                {...field}
+                                            />
 
-                            <Link href="/signup" className="underline underline-offset-4 hover:text-primary active:opacity-75 transition-opacity duration-150">Sign up</Link>
-                        </p>
-                    </FieldGroup>
-                </form>
-            </FieldSet>
+                                            <FieldError></FieldError>
+                                        </Field>
+                                    )}
+                                />
 
-            <Image
-                src={loginBanner.src}
-                alt="Sign up banner"
-                width={400}
-                height={400}
-                className="w-full h-full object-cover hidden rounded-xl md:block"
-            />
-        </>
+                                <Controller
+                                    control={form.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <Field className="grid gap-2">
+                                            <FieldLabel htmlFor="password">Password</FieldLabel>
+
+                                            <InputPassword
+                                                placeholder="Enter your password"
+                                                id="password"
+                                                {...field}
+                                            />
+                                            
+                                            <FieldError></FieldError>
+                                        </Field>
+                                    )}
+                                />
+
+                                <Button
+                                    type="submit"
+                                    className="w-full"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading && <LoaderCircleIcon className="animate-spin" />}
+
+                                    <span>Login</span>
+                                </Button>
+                            </div>
+
+                            <div className="mt-4 text-center text-sm">
+                                {LOGIN_FORM.footerText}
+
+                                {' '}
+
+                                <Link 
+                                    to="/signup"
+                                    className="underline underline-offset-4 hover:text-primary"
+                                    viewTransition
+                                >Sign up</Link>
+                            </div>
+                        </form>
+                    </Form>
+
+                    <figure className="bg-muted relative hidden md:block">
+                        <img
+                            src={loginBanner}
+                            alt="Login banner"
+                            width={400}
+                            height={400}
+                            className="w-full h-full object-cover absolute inset-0"
+                        />
+                    </figure>
+                </CardContent>
+            </Card>
+
+            <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">By clicking continue, you agree to our <a href="#">Terms of Service</a>{' '} and <a href="#">Privacy Policy</a>.</div>
+        </div>
     )
 }
 
