@@ -5,7 +5,7 @@
  */
 import { Link, useFetcher, useNavigate } from "react-router";
 import { z } from "zod";
-import { Controller, Form, useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect } from "react";
 import { toast } from "sonner";
@@ -50,7 +50,7 @@ import type {
     ValidationError
 } from "@/types";
 
-type Signupield = "email" | "password" | "role";
+type SignupField = "email" | "password" | "role";
 
 /**
  * Constants
@@ -99,133 +99,173 @@ const SignupForm = ({
         }
     });
 
+    // Handle server error response
+    useEffect(() => {
+        if (!signupResponse) return;
+
+        if (signupResponse.ok) {
+            navigate("/", { viewTransition: true });
+            return;
+        }
+
+        if (!signupResponse.err) return;
+
+        if (signupResponse.err.code === "AuthorizationError") {
+            const AuthorizationError = signupResponse.err as ErrorResponse;
+
+            toast.error(AuthorizationError.message, {
+                position: "top-center"
+            });
+        }
+
+        if (signupResponse.err.code === "ValidationError") {
+            const ValidationError = signupResponse.err as ValidationError;
+
+            Object.entries(ValidationError.errors).forEach(value => {
+                const [, validationError] = value;
+                const signupField = validationError.path as SignupField;
+
+                form.setError(
+                    signupField,
+                    {
+                        type: "custom",
+                        message: validationError.msg
+                    },
+                    { shouldFocus: true }
+                )
+            });
+        }
+    }, [signupResponse]);
+
     // Handle form submission
     const onSubmit = useCallback(async (values: z.infer<typeof formSchema>) => {
-        console.log(values);
+        await fetcher.submit(values, {
+            action: "/signup",
+            method: "POST",
+            encType: "application/json"
+        });
     }, []);
 
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
             <Card className="overflow-hidden p-0">
                 <CardContent className="grid p-0 md:grid-cols-2">
-                    <Form {...form}>
-                        <form 
-                            className="p-6 md:p-8"
-                            onSubmit={form.handleSubmit(onSubmit)}
-                        >
-                            <div className="flex flex-col gap-6">
-                                <div className="flex flex-col items-center gap-0.5 text-center">
-                                    <h1 className="text-2xl font-semibold">{SIGNUP_FORM.title}</h1>
+                    <form 
+                        className="p-6 md:p-8"
+                        onSubmit={form.handleSubmit(onSubmit)}
+                    >
+                        <div className="flex flex-col gap-6">
+                            <div className="flex flex-col items-center gap-0.5 text-center">
+                                <h1 className="text-2xl font-semibold">{SIGNUP_FORM.title}</h1>
 
-                                    <p className="text-muted-foreground px-6">{SIGNUP_FORM.description}</p>
-                                </div>
+                                <p className="text-muted-foreground px-6">{SIGNUP_FORM.description}</p>
+                            </div>
 
-                                <Controller
-                                    control={form.control}
-                                    name="role"
-                                    render={({ field }) => (
-                                        <Field className="grid gap-2">
-                                            <FieldLabel htmlFor="register_as">Register as</FieldLabel>
+                            <Controller
+                                control={form.control}
+                                name="role"
+                                render={({ field }) => (
+                                    <Field className="grid gap-2">
+                                        <FieldLabel htmlFor="register_as">Register as</FieldLabel>
 
-                                            <FieldContent>
-                                                <RadioGroup
-                                                    onValueChange={field.onChange}
-                                                    defaultValue={field.value}
-                                                    className="grid grid-cols-2 gap-0 border border-input rounded-md p-0.5"
+                                        <FieldContent>
+                                            <RadioGroup
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value}
+                                                className="grid grid-cols-2 gap-0 border border-input rounded-md p-0.5"
+                                            >
+                                                <Label 
+                                                    htmlFor="radio-user"
+                                                    className="h-[34px] w-full grid place-items-center rounded-s-sm text-muted-foreground hover:text-foreground has-checked:bg-secondary has-checked:text-secondary-foreground"
                                                 >
-                                                    <Label 
-                                                        htmlFor="radio-user"
-                                                        className="h-[34px] w-full grid place-items-center rounded-s-sm text-muted-foreground hover:text-foreground has-checked:bg-secondary has-checked:text-secondary-foreground"
-                                                    >
-                                                        <RadioGroupItem 
-                                                            value="user"
-                                                            id="radio-user"
-                                                            className="sr-only"
-                                                            hidden
-                                                        />
+                                                    <RadioGroupItem 
+                                                        value="user"
+                                                        id="radio-user"
+                                                        className="sr-only"
+                                                        hidden
+                                                    />
 
-                                                        User
-                                                    </Label>
+                                                    User
+                                                </Label>
 
-                                                    <Label 
-                                                        htmlFor="radio-admin"
-                                                        className="h-[34px] w-full grid place-items-center rounded-e-sm text-muted-foreground hover:text-foreground has-checked:bg-secondary has-checked:text-secondary-foreground"
-                                                    >
-                                                        <RadioGroupItem 
-                                                            value="admin"
-                                                            id="radio-admin"
-                                                            className="sr-only"
-                                                            hidden
-                                                        />
+                                                <Label 
+                                                    htmlFor="radio-admin"
+                                                    className="h-[34px] w-full grid place-items-center rounded-e-sm text-muted-foreground hover:text-foreground has-checked:bg-secondary has-checked:text-secondary-foreground"
+                                                >
+                                                    <RadioGroupItem 
+                                                        value="admin"
+                                                        id="radio-admin"
+                                                        className="sr-only"
+                                                        hidden
+                                                    />
 
-                                                        Admin
-                                                    </Label>
-                                                </RadioGroup>
-                                            </FieldContent>
-                                        </Field>
-                                    )}
-                                />
+                                                    Admin
+                                                </Label>
+                                            </RadioGroup>
+                                        </FieldContent>
+                                    </Field>
+                                )}
+                            />
 
-                                <Controller
-                                    control={form.control}
-                                    name="email"
-                                    render={({ field }) => (
-                                        <Field className="grid gap-2">
-                                            <FieldLabel htmlFor="email">Email address</FieldLabel>
+                            <Controller
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <Field className="grid gap-2">
+                                        <FieldLabel htmlFor="email">Email address</FieldLabel>
 
-                                            <Input
-                                                placeholder="john@example.com"
-                                                id="email"
-                                                {...field}
-                                            />
+                                        <Input
+                                            placeholder="john@example.com"
+                                            id="email"
+                                            {...field}
+                                        />
 
-                                            <FieldError></FieldError>
-                                        </Field>
-                                    )}
-                                />
+                                        <FieldError></FieldError>
+                                    </Field>
+                                )}
+                            />
 
-                                <Controller
-                                    control={form.control}
-                                    name="password"
-                                    render={({ field }) => (
-                                        <Field className="grid gap-2">
-                                            <FieldLabel htmlFor="password">Password</FieldLabel>
+                            <Controller
+                                control={form.control}
+                                name="password"
+                                render={({ field }) => (
+                                    <Field className="grid gap-2">
+                                        <FieldLabel htmlFor="password">Password</FieldLabel>
 
-                                            <InputPassword
-                                                placeholder="Enter your password"
-                                                id="password"
-                                                {...field}
-                                            />
-                                            
-                                            <FieldError></FieldError>
-                                        </Field>
-                                    )}
-                                />
+                                        <InputPassword
+                                            placeholder="Enter your password"
+                                            id="password"
+                                            {...field}
+                                        />
+                                        
+                                        <FieldError></FieldError>
+                                    </Field>
+                                )}
+                            />
 
-                                <Button
-                                    type="submit"
-                                    className="w-full"
-                                    disabled={isLoading}
-                                >
-                                    {isLoading && <LoaderCircleIcon className="animate-spin" />}
+                            <Button
+                                type="submit"
+                                className="w-full"
+                                disabled={isLoading}
+                            >
+                                {isLoading && <LoaderCircleIcon className="animate-spin" />}
 
-                                    <span>Signup</span>
-                                </Button>
-                            </div>
+                                <span>Signup</span>
+                            </Button>
+                        </div>
 
-                            <div className="mt-4 text-center text-sm">
-                                {SIGNUP_FORM.footerText}
+                        <div className="mt-4 text-center text-sm">
+                            {SIGNUP_FORM.footerText}
 
-                                {" "}
+                            {" "}
 
-                                <Link 
-                                    to="/login"
-                                    className="underline underline-offset-4 hover:text-primary"
-                                    viewTransition
-                                >Login</Link>
-                            </div>
-                        </form>
-                    </Form>
+                            <Link 
+                                to="/login"
+                                className="underline underline-offset-4 hover:text-primary"
+                                viewTransition
+                            >Login</Link>
+                        </div>
+                    </form>
 
                     <figure className="bg-muted relative hidden md:block">
                         <img
