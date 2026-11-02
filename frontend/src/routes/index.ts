@@ -7,6 +7,7 @@ import { createBrowserRouter } from "react-router";
  * Loaders
  */
 import refreshTokenLoader from "@/routes/loaders/refreshToken";
+import homeLoader from "@/routes/loaders/home/homeLoader";
 
 /**
  * Pages
@@ -14,12 +15,14 @@ import refreshTokenLoader from "@/routes/loaders/refreshToken";
 import { Login } from "@/pages/auth/Login";
 import { Signup } from "@/pages/auth/Signup";
 import { RootLayout } from "@/components/layouts/Root";
+import { Home } from "@/pages/user/Home";
 
 /**
  * Actions
  */
 import signupAction from "@/routes/actions/auth/signup";
 import loginAction from "@/routes/actions/auth/login";
+import settingsAction from "@/routes/actions/user/settings";
 
 /**
  * Error boundaries
@@ -45,7 +48,9 @@ const router = createBrowserRouter([
         Component: RootLayout,
         children: [
             {
-                index: true
+                index: true,
+                Component: Home,
+                loader: homeLoader
             },
             {
                 path: "blogs"
@@ -80,6 +85,7 @@ const router = createBrowserRouter([
     },
     {
         path: "/settings",
+        action: settingsAction
     }
 ]);
 

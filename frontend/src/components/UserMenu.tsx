@@ -89,7 +89,10 @@ const UserMenu = () => {
                         )}
 
                         <SettingsDialog>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                                className="w-full"
+                                onSelect={e => e.preventDefault()}
+                            >
                                 <SettingsIcon />
 
                                 Settings

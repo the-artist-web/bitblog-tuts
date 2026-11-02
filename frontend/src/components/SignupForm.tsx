@@ -210,7 +210,7 @@ const SignupForm = ({
                             <Controller
                                 control={form.control}
                                 name="email"
-                                render={({ field }) => (
+                                render={({ field, fieldState }) => (
                                     <Field className="grid gap-2">
                                         <FieldLabel htmlFor="email">Email address</FieldLabel>
 
@@ -219,8 +219,8 @@ const SignupForm = ({
                                             id="email"
                                             {...field}
                                         />
-
-                                        <FieldError></FieldError>
+                                        
+                                        {fieldState.error && <FieldError>{fieldState.error?.message}</FieldError>}
                                     </Field>
                                 )}
                             />
@@ -228,7 +228,7 @@ const SignupForm = ({
                             <Controller
                                 control={form.control}
                                 name="password"
-                                render={({ field }) => (
+                                render={({ field, fieldState }) => (
                                     <Field className="grid gap-2">
                                         <FieldLabel htmlFor="password">Password</FieldLabel>
 
@@ -238,7 +238,7 @@ const SignupForm = ({
                                             {...field}
                                         />
                                         
-                                        <FieldError></FieldError>
+                                        {fieldState.error && <FieldError>{fieldState.error?.message}</FieldError>}
                                     </Field>
                                 )}
                             />

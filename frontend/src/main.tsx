@@ -20,12 +20,15 @@ import router from "@/routes";
  */
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider defaultTheme="dark" storageKey="bitblog-tuts-ui-theme">
-      <RouterProvider router={router} />
-      <Toaster richColors />
+      <TooltipProvider>
+        <RouterProvider router={router} />
+        <Toaster richColors />
+      </TooltipProvider>
     </ThemeProvider>
   </StrictMode>
 )
