@@ -6,8 +6,10 @@ import { createBrowserRouter } from "react-router";
 /**
  * Loaders
  */
+import homeLoader from "@/routes/loaders/user/homeLoader";
 import refreshTokenLoader from "@/routes/loaders/refreshToken";
-import homeLoader from "@/routes/loaders/home/homeLoader";
+import blogDetailLoader from "@/routes/loaders/user/blogDetailLoader";
+import userBlogLoader from "@/routes/loaders/user/userBlogLoader";
 
 /**
  * Pages
@@ -16,6 +18,8 @@ import { Login } from "@/pages/auth/Login";
 import { Signup } from "@/pages/auth/Signup";
 import { RootLayout } from "@/components/layouts/Root";
 import { Home } from "@/pages/user/Home";
+import { Blogs } from "@/pages/user/Blogs";
+import { BlogDetail } from "@/pages/user/BlogDetail";
 
 /**
  * Actions
@@ -53,10 +57,14 @@ const router = createBrowserRouter([
                 loader: homeLoader
             },
             {
-                path: "blogs"
+                path: "blogs",
+                Component: Blogs,
+                loader: userBlogLoader
             },
             {
-                path: "blogs/:slug"
+                path: "blogs/:slug",
+                Component: BlogDetail,
+                loader: blogDetailLoader
             }
         ]
     },

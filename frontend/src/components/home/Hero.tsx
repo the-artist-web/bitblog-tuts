@@ -61,7 +61,7 @@ const Hero = ({
 }: React.ComponentProps<"section">) => {
     return (
         <section 
-            className={cn("", className)}
+            className={cn("section", className)}
             {...props}
         >
             <motion.div

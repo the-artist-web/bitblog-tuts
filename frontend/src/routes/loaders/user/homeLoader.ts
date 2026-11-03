@@ -22,9 +22,25 @@ export interface HomeLoaderResponse {
     allBlog: PaginatedResponse<Blog, "blogs">;
 };
 
-const homeLoader: LoaderFunction = () => {
+const homeLoader: LoaderFunction = async () => {
     try {
-        const 
+        const { data: recentBlog } = await bitblogApi.get("/blogs", {
+            params: {
+                limit: 4
+            }
+        });
+
+        const { data: allBlog } = await bitblogApi.get("/blogs", {
+            params: {
+                offset: 4,
+                limit: 12
+            }
+        });
+
+        return {
+            recentBlog,
+            allBlog
+        } as HomeLoaderResponse
     } catch (err) {
         if (err instanceof AxiosError) {
             throw data(err.response?.data.message || err.message, {

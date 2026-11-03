@@ -14,11 +14,13 @@ import { cn } from "cn";
 /**
  * Components
  */
+import BlogCard from "@/components/BlogCard";
 
 /**
  * Types
  */
 import type { Variants } from "motion/react";
+import type { HomeLoaderResponse } from "@/routes/loaders/user/homeLoader";
 
 /**
  * Motion variants
@@ -46,11 +48,55 @@ const RecentBlogs = ({
     className,
     ...props
 }: React.ComponentProps<"section">) => {
+    const { recentBlog } = useLoaderData<HomeLoaderResponse>();
+
     return (
         <section
-            className={cn("", className)}
+            className={cn("section", className)}
             {...props}
-        >RecentBlogs</section>
+        >
+            <div className="container">
+                <motion.h2
+                    className="section-title"
+                    initial={{ opacity: 0 }}
+                    whileInView={{
+                        opacity: 1,
+                        transition: {
+                            duration: 0.5,
+                            ease: "easeOut"
+                        }
+                    }}
+                >Recent blog posts</motion.h2>
+
+                <motion.ul
+                    className="grid gap-4 lg:grid-cols-2 lg:grid-rows-3"
+                    initial="from"
+                    whileInView="to"
+                    viewport={{ once: true }}
+                    variants={listVariant}
+                >
+                    {recentBlog.blogs.map(({ slug, banner, title, content, author, publishedAt }, index) => (
+                        <motion.li
+                            key={slug}
+                            className={cn(index === 0 && "lg:row-span-3")}
+                            variants={itemVariant}
+                        >
+                            <BlogCard
+                                bannerUrl={banner.url}
+                                bannerWidth={banner.width}
+                                bannerHeight={banner.height}
+                                title={title}
+                                content={content}
+                                slug={slug}
+                                authorName={author.firstName && author.lastName ? `${author.firstName} ${author.lastName}` : `@${author.username}`}
+                                publishedAt={publishedAt}
+                                size={index > 0 ? "sm" : "default"}
+                            />
+                        </motion.li>
+                    ))}
+                </motion.ul>
+            </div>
+        </section>
     )
 }
 
