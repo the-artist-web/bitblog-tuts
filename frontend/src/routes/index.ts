@@ -10,6 +10,7 @@ import homeLoader from "@/routes/loaders/user/homeLoader";
 import refreshTokenLoader from "@/routes/loaders/refreshToken";
 import blogDetailLoader from "@/routes/loaders/user/blogDetailLoader";
 import userBlogLoader from "@/routes/loaders/user/userBlogLoader";
+import adminLoader from "@/routes/loaders/admin/adminLoader";
 
 /**
  * Pages
@@ -20,6 +21,8 @@ import { RootLayout } from "@/components/layouts/Root";
 import { Home } from "@/pages/user/Home";
 import { Blogs } from "@/pages/user/Blogs";
 import { BlogDetail } from "@/pages/user/BlogDetail";
+import { AdminLayout } from "@/components/layouts/AdminLayout";
+import { Dashboard } from "@/pages/admin/Dashboard";
 
 /**
  * Actions
@@ -31,6 +34,7 @@ import settingsAction from "@/routes/actions/user/settings";
 /**
  * Error boundaries
  */
+import RootErrorBoundary from "@/pages/error/RootErrorBoundary";
 
 const router = createBrowserRouter([
     {
@@ -70,24 +74,34 @@ const router = createBrowserRouter([
     },
     {
         path: "/admin",
+        Component: AdminLayout,
+        loader: adminLoader,
+        ErrorBoundary: RootErrorBoundary,
         children: [
             {
-                path: "dashboard"
+                path: "dashboard",
+                Component: Dashboard,
+                handle: { breadcrumb: "Dashboard" }
             },
             {
-                path: "blogs"
+                path: "blogs",
+                handle: { breadcrumb: "Blogs" }
             },
             {
-                path: "blogs/create"
+                path: "blogs/create",
+                handle: { breadcrumb: "Create a new blog" }
             },
             {
-                path: "blogs/:slug/edit"
+                path: "blogs/:slug/edit",
+                handle: { breadcrumb: "Edit blog" }
             },
             {
-                path: "comments"
+                path: "comments",
+                handle: { breadcrumb: "Comments" }
             },
             {
-                path: "users"
+                path: "users",
+                handle: { breadcrumb: "Users" }
             }
         ]
     },
