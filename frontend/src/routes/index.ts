@@ -11,6 +11,7 @@ import refreshTokenLoader from "@/routes/loaders/refreshToken";
 import blogDetailLoader from "@/routes/loaders/user/blogDetailLoader";
 import userBlogLoader from "@/routes/loaders/user/userBlogLoader";
 import adminLoader from "@/routes/loaders/admin/adminLoader";
+import dashboardLoader from "@/routes/loaders/admin/dashboardLoader";
 
 /**
  * Pages
@@ -81,6 +82,7 @@ const router = createBrowserRouter([
             {
                 path: "dashboard",
                 Component: Dashboard,
+                loader: dashboardLoader,
                 handle: { breadcrumb: "Dashboard" }
             },
             {
