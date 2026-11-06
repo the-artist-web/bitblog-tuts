@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import BlogTable from "@/components/BlogTable";
 
 /**
  * Assets
@@ -89,6 +90,36 @@ export const Dashboard = () => {
                     </CardContent>
                 </Card>
             </div>
+                
+            <Card className="gap-4 py-4">
+                <CardHeader className="flex items-center gap-2.5 px-4">
+                    <div className="bg-muted text-muted-foreground max-w-max p-2 rounded-lg">
+                        <TextIcon size={18} />
+                    </div>
+
+                    <CardTitle className="font-normal text-lg">Recent Articles</CardTitle>
+
+                    <CardAction className="ms-auto">
+                        <Button
+                            variant="link"
+                            size="sm"
+                            asChild
+                        >
+                            <Link
+                                to="/admin/blogs"
+                                viewTransition
+                            >See all</Link>
+                        </Button>
+                    </CardAction>
+                </CardHeader>
+
+                <CardContent className="px-4">
+                    <BlogTable
+                        columns={columns}
+                        data={LoaderData.blogs}
+                    />
+                </CardContent>
+            </Card>
         </div>
     )
 }
