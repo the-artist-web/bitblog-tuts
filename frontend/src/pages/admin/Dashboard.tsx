@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import BlogTable from "@/components/BlogTable";
+// import BlogTable, { columns } from "@/components/BlogTable";
 
 /**
  * Assets
@@ -114,10 +114,10 @@ export const Dashboard = () => {
                 </CardHeader>
 
                 <CardContent className="px-4">
-                    <BlogTable
+                    {/* <BlogTable
                         columns={columns}
                         data={LoaderData.blogs}
-                    />
+                    /> */}
                 </CardContent>
             </Card>
         </div>
